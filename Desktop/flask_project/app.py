@@ -39,16 +39,14 @@ def generate_key():
 
     new_key = generate_licence_key()
 
-    cur = None
     try:
         cur = mysql.connection.cursor()
-
         add_licence = ("INSERT INTO licences (licence_key, customer_email, url) "
                        "VALUES (%s, %s, %s)")
         data_licence = (new_key, customer_email, url)
-
         cur.execute(add_licence, data_licence)
         mysql.connection.commit()
+        cur.close()
 
         return jsonify({'licence_key': new_key, 'email': customer_email, 'url': url}), 201
 
@@ -56,31 +54,22 @@ def generate_key():
         app.logger.error(f'Database Error: {err}')
         return jsonify({'error': f'Database Error: {err}'}), 500
 
-    finally:
-        if cur:
-            cur.close()
-
 # Retrieve licence keys
 @app.route('/licences', methods=['GET'])
 @limiter.limit("5 per minute")
 def get_licences():
-    cur = None
     try:
         cur = mysql.connection.cursor()
         cur.execute("SELECT licence_key, customer_email, url FROM licences")
         results = cur.fetchall()
+        cur.close()
 
         licences = [{'licence_key': row[0], 'email': row[1], 'url': row[2]} for row in results]
-
         return jsonify(licences), 200
 
     except Exception as err:
         app.logger.error(f'Database Error: {err}')
         return jsonify({'error': f'Database Error: {err}'}), 500
-
-    finally:
-        if cur:
-            cur.close()
 
 # Validate a licence key
 @app.route('/validate-key', methods=['POST'])
@@ -94,12 +83,12 @@ def validate_key():
     if not licence_key or not email or not url:
         return jsonify({'error': 'Licence key, email, and URL are required!'}), 400
 
-    cur = None
     try:
         cur = mysql.connection.cursor()
         cur.execute("SELECT * FROM licences WHERE licence_key = %s AND customer_email = %s AND url = %s",
                     (licence_key, email, url))
         result = cur.fetchone()
+        cur.close()
 
         if result:
             return jsonify({"valid": True}), 200
@@ -109,10 +98,6 @@ def validate_key():
     except Exception as err:
         app.logger.error(f'Error validating key: {err}')
         return jsonify({"error": f"Internal server error: {err}"}), 500
-
-    finally:
-        if cur:
-            cur.close()
 
 @app.errorhandler(404)
 def not_found_error(error):
