@@ -41,7 +41,7 @@ def generate_key():
 
     try:
         cnx = get_db_connection()
-        cursor = cnx.cursor()
+        cursor = cnx.cursor()  # Initialize the cursor here
 
         add_licence = ("INSERT INTO licences (licence_key, customer_email, url) "
                        "VALUES (%s, %s, %s)")
