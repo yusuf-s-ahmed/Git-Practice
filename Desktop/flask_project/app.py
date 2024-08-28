@@ -107,10 +107,10 @@ def get_licences():
 @app.route('/validate-key', methods=['POST'])
 @limiter.limit("5 per minute")
 def validate_key():
-    data = request.json
-    licence_key = data.get('licence_key')
-    email = data.get('email')
-    url = data.get('url')
+    request_data = request.get_json()
+    licence_key = request_data.get('licence_key')
+    email = request_data.get('email')
+    url = request_data.get('url')
 
     if not licence_key or not email or not url:
         return jsonify({'error': 'Licence key, email, and URL are required!'}), 400
@@ -121,22 +121,21 @@ def validate_key():
         cnx = get_db_connection()
         cursor = cnx.cursor()
 
-        query = ("SELECT licence_key FROM licences WHERE licence_key = %s AND customer_email = %s AND url = %s")
-        cursor.execute(query, (licence_key, email, url))
+        cursor.execute("SELECT * FROM licences WHERE licence_key = %s AND customer_email = %s AND url = %s",
+                       (licence_key, email, url))
         result = cursor.fetchone()
 
         if result:
-            return jsonify({'valid': True}), 200
+            return jsonify({"valid": True}), 200
         else:
-            return jsonify({'valid': False, 'error': 'Invalid licence key, email, or URL!'}), 400
-
+            return jsonify({"valid": False}), 200
     except mysql.connector.Error as err:
-        return jsonify({'error': f'Database Error: {err}'}), 500
-
+        app.logger.error(f"Error validating key: {err}")
+        return jsonify({"error": "Internal server error"}), 500
     finally:
-        if cursor is not None:
+        if cursor:
             cursor.close()
-        if cnx is not None:
+        if cnx:
             cnx.close()
 
 @app.errorhandler(404)
