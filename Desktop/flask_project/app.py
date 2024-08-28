@@ -3,6 +3,8 @@ from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
 import mysql.connector
 import uuid
+import os
+from urllib.parse import urlparse
 from waitress import serve
 
 app = Flask(__name__)
@@ -19,12 +21,25 @@ def generate_licence_key():
 
 # Database connection
 def get_db_connection():
-    return mysql.connector.connect(
-        user="root",
-        password="Q8P$an97A",  # Your actual MySQL root password
-        host="localhost",
-        database="shopify_licence_system"
-    )
+    db_url = os.getenv('JAWSDB_URL')
+    
+    if db_url:
+        url = urlparse(db_url)
+        return mysql.connector.connect(
+            user=url.username,
+            password=url.password,
+            host=url.hostname,
+            database=url.path[1:],  # Remove leading '/' from path
+            port=url.port
+        )
+    else:
+        # For local development, use this if JAWSDB_URL is not set
+        return mysql.connector.connect(
+            user="root",
+            password="Q8P$an97A",  # Your actual MySQL root password
+            host="localhost",
+            database="shopify_licence_system"
+        )
 
 # Create a new licence key
 @app.route('/generate-key', methods=['POST'])
@@ -55,12 +70,13 @@ def generate_key():
         return jsonify({'licence_key': new_key, 'email': customer_email, 'url': url}), 201
 
     except mysql.connector.Error as err:
+        app.logger.error(f'Database Error: {err}')
         return jsonify({'error': f'Database Error: {err}'}), 500
 
     finally:
-        if cursor is not None:
+        if cursor:
             cursor.close()
-        if cnx is not None:
+        if cnx:
             cnx.close()
 
 # Retrieve licence keys
@@ -76,23 +92,18 @@ def get_licences():
         cursor.execute("SELECT licence_key, customer_email, url FROM licences")
         results = cursor.fetchall()
 
-        licences = []
-        for row in results:
-            licences.append({
-                'licence_key': row[0],
-                'email': row[1],
-                'url': row[2]
-            })
+        licences = [{'licence_key': row[0], 'email': row[1], 'url': row[2]} for row in results]
 
         return jsonify(licences), 200
 
     except mysql.connector.Error as err:
+        app.logger.error(f'Database Error: {err}')
         return jsonify({'error': f'Database Error: {err}'}), 500
 
     finally:
-        if cursor is not None:
+        if cursor:
             cursor.close()
-        if cnx is not None:
+        if cnx:
             cnx.close()
 
 # Validate a licence key
@@ -121,13 +132,15 @@ def validate_key():
             return jsonify({"valid": True}), 200
         else:
             return jsonify({"valid": False}), 200
+
     except mysql.connector.Error as err:
-        app.logger.error(f"Error validating key: {err}")
-        return jsonify({"error": "Internal server error"}), 500
+        app.logger.error(f'Error validating key: {err}')
+        return jsonify({"error": f"Internal server error: {err}"}), 500
+
     finally:
         if cursor:
             cursor.close()
-        if cnx is not None:
+        if cnx:
             cnx.close()
 
 @app.errorhandler(404)
