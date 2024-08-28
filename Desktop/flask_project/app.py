@@ -39,9 +39,11 @@ def generate_key():
 
     new_key = generate_licence_key()
 
+    cnx = None
+    cursor = None
     try:
         cnx = get_db_connection()
-        cursor = cnx.cursor()  # Initialize the cursor here
+        cursor = cnx.cursor()
 
         add_licence = ("INSERT INTO licences (licence_key, customer_email, url) "
                        "VALUES (%s, %s, %s)")
@@ -56,13 +58,17 @@ def generate_key():
         return jsonify({'error': f'Database Error: {err}'}), 500
 
     finally:
-        cursor.close()
-        cnx.close()
+        if cursor is not None:
+            cursor.close()
+        if cnx is not None:
+            cnx.close()
 
 # Retrieve licence keys
 @app.route('/licences', methods=['GET'])
 @limiter.limit("5 per minute")
 def get_licences():
+    cnx = None
+    cursor = None
     try:
         cnx = get_db_connection()
         cursor = cnx.cursor()
@@ -84,8 +90,10 @@ def get_licences():
         return jsonify({'error': f'Database Error: {err}'}), 500
 
     finally:
-        cursor.close()
-        cnx.close()
+        if cursor is not None:
+            cursor.close()
+        if cnx is not None:
+            cnx.close()
 
 # Validate a licence key
 @app.route('/validate-key', methods=['POST'])
@@ -99,6 +107,8 @@ def validate_key():
     if not licence_key or not email or not url:
         return jsonify({'error': 'Licence key, email, and URL are required!'}), 400
 
+    cnx = None
+    cursor = None
     try:
         cnx = get_db_connection()
         cursor = cnx.cursor()
@@ -116,8 +126,10 @@ def validate_key():
         return jsonify({'error': f'Database Error: {err}'}), 500
 
     finally:
-        cursor.close()
-        cnx.close()
+        if cursor is not None:
+            cursor.close()
+        if cnx is not None:
+            cnx.close()
 
 @app.errorhandler(404)
 def not_found_error(error):
