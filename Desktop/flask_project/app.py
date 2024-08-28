@@ -3,6 +3,8 @@ from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
 import mysql.connector
 import uuid
+import os
+from urllib.parse import urlparse
 from waitress import serve
 
 app = Flask(__name__)
@@ -19,12 +21,18 @@ def generate_licence_key():
 
 # Database connection
 def get_db_connection():
-    return mysql.connector.connect(
-        user='root',
-        password='Q8P$an97A',
-        host='127.0.0.1',
-        database='shopify_licence_system'
-    )
+    db_url = os.getenv('JAWSDB_URL')
+
+    if db_url:
+        url = urlparse(db_url)
+        return mysql.connector.connect(
+            user=url.username,
+            password=url.password,
+            host=url.hostname,
+            database=url.path[1:]
+        )
+    else:
+        raise ValueError("Database URL not found. Please set the JAWSDB_URL environment variable.")
 
 # Create a new licence key
 @app.route('/generate-key', methods=['POST'])
