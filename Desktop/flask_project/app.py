@@ -29,7 +29,8 @@ def get_db_connection():
             user=url.username,
             password=url.password,
             host=url.hostname,
-            database=url.path[1:]
+            database="shopify_licence_system",  # Use the correct database name
+            port=url.port
         )
     else:
         raise ValueError("Database URL not found. Please set the JAWSDB_URL environment variable.")
