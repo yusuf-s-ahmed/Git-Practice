@@ -8,8 +8,13 @@ from waitress import serve
 
 app = Flask(__name__)
 
-# Configure CORS
-cors = CORS(app, resources={r"/validate-key": {"origins": "https://sitebyjirointro.myshopify.com"}})
+# Configure CORS to allow specific origins
+cors = CORS(app, resources={
+    r"/validate-key": {"origins": [
+        "https://sitebyjirointro.myshopify.com",
+        "https://admin.shopify.com"
+    ]}
+})
 
 limiter = Limiter(
     get_remote_address,
