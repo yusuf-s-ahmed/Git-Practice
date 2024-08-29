@@ -2,18 +2,21 @@ from flask import Flask, request, jsonify
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
 from flask_mysqldb import MySQL
-from flask_cors import CORS  # Import CORS
+from flask_cors import CORS
 import uuid
 from waitress import serve
+from urllib.parse import urlparse
 
 app = Flask(__name__)
 
 # Configure CORS to allow specific origins
 cors = CORS(app, resources={
-    r"/validate-key": {"origins": [
-        "https://sitebyjirointro.myshopify.com",
-        "https://admin.shopify.com"
-    ]}
+    r"/validate-key": {
+        "origins": [
+            "https://sitebyjirointro.myshopify.com",
+            "https://admin.shopify.com"
+        ]
+    }
 })
 
 limiter = Limiter(
@@ -92,6 +95,28 @@ def validate_key():
 
     if not licence_key or not email or not url:
         return jsonify({'error': 'Licence key, email, and URL are required!'}), 400
+
+    # Extract the origin of the request
+    origin = request.headers.get('Origin')
+    
+    # List of allowed origins and their paths
+    allowed_origins = {
+        "https://sitebyjirointro.myshopify.com": None,
+        "https://admin.shopify.com": [
+            "/store/sitebyjirointro/themes/127883214966/editor"
+        ]
+    }
+
+    if origin in allowed_origins:
+        if allowed_origins[origin] is not None:
+            # Extract the path from the Referer URL
+            referer = request.headers.get('Referer', '')
+            parsed_url = urlparse(referer)
+            path = parsed_url.path
+            if path not in allowed_origins[origin]:
+                return jsonify({'error': 'Invalid path for the origin'}), 403
+    else:
+        return jsonify({'error': 'Origin not allowed'}), 403
 
     try:
         cur = mysql.connection.cursor()
