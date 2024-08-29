@@ -2,10 +2,15 @@ from flask import Flask, request, jsonify
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
 from flask_mysqldb import MySQL
+from flask_cors import CORS  # Import CORS
 import uuid
 from waitress import serve
 
 app = Flask(__name__)
+
+# Configure CORS
+cors = CORS(app, resources={r"/validate-key": {"origins": "https://sitebyjirointro.myshopify.com"}})
+
 limiter = Limiter(
     get_remote_address,
     app=app,
