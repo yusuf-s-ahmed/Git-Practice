@@ -39,10 +39,10 @@ deactivate nondestructive
 if [ "${OSTYPE:-}" = "cygwin" ] || [ "${OSTYPE:-}" = "msys" ] ; then
     # transform D:\path\to\venv to /d/path/to/venv on MSYS
     # and to /cygdrive/d/path/to/venv on Cygwin
-    export VIRTUAL_ENV=$(cygpath "c:\Users\yusuf\Desktop\flask_test\.venv")
+    export VIRTUAL_ENV=$(cygpath "C:\Users\yusuf\Desktop\flask_project\key")
 else
     # use the path as-is
-    export VIRTUAL_ENV="c:\Users\yusuf\Desktop\flask_test\.venv"
+    export VIRTUAL_ENV="C:\Users\yusuf\Desktop\flask_project\key"
 fi
 
 _OLD_VIRTUAL_PATH="$PATH"
@@ -59,9 +59,9 @@ fi
 
 if [ -z "${VIRTUAL_ENV_DISABLE_PROMPT:-}" ] ; then
     _OLD_VIRTUAL_PS1="${PS1:-}"
-    PS1="(.venv) ${PS1:-}"
+    PS1="(key) ${PS1:-}"
     export PS1
-    VIRTUAL_ENV_PROMPT="(.venv) "
+    VIRTUAL_ENV_PROMPT="(key) "
     export VIRTUAL_ENV_PROMPT
 fi
 
