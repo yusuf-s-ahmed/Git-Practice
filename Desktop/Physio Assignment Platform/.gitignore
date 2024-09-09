@@ -10,3 +10,9 @@ __pycache__/
 # System Files
 .DS_Store
 Thumbs.db
+
+# Ignore the Flask project directory
+flask_project/
+
+# Ignore the directory containing the Streamlit app if needed
+Physio Assignment Platform/
