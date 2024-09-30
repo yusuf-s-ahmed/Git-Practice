@@ -1,0 +1,25 @@
+version: '3.8'  # Consider using a newer version for more features
+
+services:
+  backend:
+    build: ./backend
+    container_name: django-backend
+    ports:
+      - "8000:8000"  # Map host port 8000 to container port 8000
+    volumes:
+      - ./backend:/usr/src/app  # Mount the backend directory
+    env_file:
+      - ./backend/.env  # Load environment variables from .env file
+
+  frontend:
+    build:
+      context: ./frontend  # This points to the frontend directory
+    container_name: react-frontend
+    ports:
+      - "3000:3000"  # Map host port 3000 to container port 3000
+    volumes:
+      - ./frontend/data-migration:/usr/src/app  # Mount the data-migration directory
+    env_file:
+      - ./frontend/.env  # Load environment variables from .env file
+    depends_on:
+      - backend  # Ensure the backend starts before the frontend

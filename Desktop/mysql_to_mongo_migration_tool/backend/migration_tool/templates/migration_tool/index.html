@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Migration Tool</title>
+</head>
+<body>
+    <h1>Welcome to the MySQL to MongoDB Migration Tool</h1>
+    <form method="POST" action="/api/migrate/">
+        {% csrf_token %}
+        <label for="mysql_conn">MySQL Connection String:</label><br>
+        <input type="text" id="mysql_conn" name="mysql_conn" required><br><br>
+        
+        <label for="mongo_conn">MongoDB Connection String:</label><br>
+        <input type="text" id="mongo_conn" name="mongo_conn" required><br><br>
+
+        <label for="mysql_table">MySQL Table Name:</label><br>
+        <input type="text" id="mysql_table" name="mysql_table" required><br><br>
+
+        <label for="mongo_db">MongoDB Database Name:</label><br>
+        <input type="text" id="mongo_db" name="mongo_db" required><br><br>
+
+        <label for="mongo_collection">MongoDB Collection Name:</label><br>
+        <input type="text" id="mongo_collection" name="mongo_collection" required><br><br>
+
+        <input type="submit" value="Migrate Data">
+    </form>
+</body>
+</html>
